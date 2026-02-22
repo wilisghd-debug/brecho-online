@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz - Brechó Online</title>
+
+<style>
+/* =============================
+   RESET E CONFIGURAÇÕES GERAIS
+============================= */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body{
+  background:#0f0f0f;
+  color:#ffffff;
+  overflow-x:hidden;
+}
+
+.container{
+  max-width:600px;
+  margin:0 auto;
+  padding:20px;
+}
+
+.hidden{ display:none; }
+
+h1,h2,h3{
+  margin-bottom:15px;
+}
+
+p{
+  margin-bottom:15px;
+  color:#cfcfcf;
+}
+
+/* =============================
+   BOTÕES
+============================= */
+.btn{
+  display:block;
+  width:100%;
+  padding:15px;
+  margin:10px 0;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  transition: all .3s ease;
+}
+
+.btn-primary{
+  background:#00ff88;
+  color:#000;
+}
+
+.btn-primary:hover{
+  background:#00cc6a;
+  transform:translateY(-2px);
+}
+
+.btn-option{
+  background:#1a1a1a;
+  color:#fff;
+  border:1px solid #333;
+}
+
+.btn-option:hover{
+  border-color:#00ff88;
+  background:#222;
+}
+
+.highlight{
+  color:#ffc107;
+}
+
+/* =============================
+   PROGRESS BAR
+============================= */
+.progress-bar{
+  height:8px;
+  background:#1a1a1a;
+  border-radius:5px;
+  margin-bottom:20px;
+  overflow:hidden;
+}
+
+.progress{
+  height:100%;
+  width:0%;
+  background:#00ff88;
+  transition:width .4s ease;
+}
+
+/* =============================
+   CARD
+============================= */
+.card{
+  background:#141414;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  animation:fadeIn .4s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* =============================
+   CONTADOR
+============================= */
+.countdown{
+  background:#1a1a1a;
+  padding:15px;
+  border-radius:10px;
+  margin:20px 0;
+  text-align:center;
+  font-weight:bold;
+  color:#ffc107;
+}
+
+/* =============================
+   POPUP SAÍDA
+============================= */
+.exit-popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,.8);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+  display:none;
+}
+
+.exit-popup-content{
+  background:#141414;
+  padding:25px;
+  border-radius:15px;
+  max-width:400px;
+  text-align:center;
+}
+
+.social-proof{
+  font-size:14px;
+  margin-bottom:15px;
+  color:#00ff88;
+}
+
+/* RESPONSIVO */
+@media(max-width:500px){
+  h1{font-size:22px;}
+  h2{font-size:20px;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- TELA INICIAL -->
+<div id="start" class="card">
+  <div class="social-proof">+347 pessoas começaram essa semana</div>
+  <h1>Descubra se você pode ganhar dinheiro com um <span class="highlight">Brechó Online</span></h1>
+  <p>Responda 6 perguntas rápidas e descubra se você pode transformar roupas esquecidas em renda extra trabalhando de casa.</p>
+  <button class="btn btn-primary" onclick="startQuiz()">Começar Agora</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="hidden">
+  <div class="progress-bar">
+    <div class="progress" id="progress"></div>
+  </div>
+  <div id="question-container" class="card"></div>
+</div>
+
+<!-- RESULTADO -->
+<div id="result" class="hidden card"></div>
+
+</div>
+
+<!-- POPUP SAÍDA -->
+<div class="exit-popup" id="exitPopup">
+  <div class="exit-popup-content">
+    <h3>Espere!</h3>
+    <p>Você está a um passo de descobrir como começar seu Brechó Online com pouco dinheiro.</p>
+    <button class="btn btn-primary" onclick="closePopup()">Continuar</button>
+  </div>
+</div>
+
+<script>
+/* =============================
+   CONFIGURAÇÃO
+============================= */
+const checkoutLink = "https://pay.kiwify.com.br/7FuRjQG";
+
+const questions = [
+{
+  question:"Você busca uma renda extra?",
+  options:[
+    {text:"Sim, preciso aumentar minha renda", score:2},
+    {text:"Talvez, mas ainda estou pensando", score:1}
+  ]
+},
+{
+  question:"Gostaria de trabalhar de casa?",
+  options:[
+    {text:"Sim, seria perfeito pra mim", score:2},
+    {text:"Não é prioridade", score:0}
+  ]
+},
+{
+  question:"Você já pensou em vender roupas online?",
+  options:[
+    {text:"Sim, várias vezes", score:2},
+    {text:"Nunca pensei nisso", score:0}
+  ]
+},
+{
+  question:"Quanto gostaria de ganhar por mês?",
+  options:[
+    {text:"R$1.000 a R$3.000", score:2},
+    {text:"Qualquer valor extra já ajuda", score:1}
+  ]
+},
+{
+  question:"Você tem roupas paradas no guarda-roupa?",
+  options:[
+    {text:"Sim, muitas peças", score:2},
+    {text:"Poucas peças", score:1}
+  ]
+},
+{
+  question:"Você gostaria de começar com pouco investimento?",
+  options:[
+    {text:"Sim, não quero gastar muito", score:2},
+    {text:"Posso investir alto", score:0}
+  ]
+}
+];
+
+let currentQuestion = 0;
+let totalScore = 0;
+
+/* =============================
+   FUNÇÕES
+============================= */
+
+function startQuiz(){
+  document.getElementById("start").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  showQuestion();
+}
+
+function showQuestion(){
+  const container = document.getElementById("question-container");
+  container.innerHTML = "";
+
+  let q = questions[currentQuestion];
+
+  let title = document.createElement("h2");
+  title.innerText = q.question;
+  container.appendChild(title);
+
+  q.options.forEach(option=>{
+    let btn = document.createElement("button");
+    btn.classList.add("btn","btn-option");
+    btn.innerText = option.text;
+    btn.onclick = ()=>{
+      totalScore += option.score;
+      nextQuestion();
+    };
+    container.appendChild(btn);
+  });
+
+  updateProgress();
+}
+
+function nextQuestion(){
+  currentQuestion++;
+  if(currentQuestion < questions.length){
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function updateProgress(){
+  let percent = ((currentQuestion)/questions.length)*100;
+  document.getElementById("progress").style.width = percent+"%";
+}
+
+function showResult(){
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+
+  let result = document.getElementById("result");
+
+  let message = "";
+
+  if(totalScore >= 10){
+    message = "<h2>Você tem grande potencial para lucrar com um Brechó Online</h2>";
+  } else {
+    message = "<h2>Você pode transformar roupas esquecidas em uma nova fonte de renda</h2>";
+  }
+
+  result.innerHTML = `
+  ${message}
+  <p>Muitas pessoas começam apenas querendo renda extra… e descobrem uma forma real de empreender sem loja física e sem alto investimento.</p>
+  <ul>
+    <li>✔ Comece com peças que você já tem</li>
+    <li>✔ Trabalhe de casa</li>
+    <li>✔ Baixo investimento inicial</li>
+    <li>✔ Estratégias simples e práticas</li>
+  </ul>
+
+  <div class="countdown">Bônus disponível por: <span id="timer">05:00</span></div>
+
+  <button class="btn btn-primary" onclick="goCheckout()">Quero Começar Meu Brechó Online</button>
+
+  <hr style="margin:25px 0; border-color:#222">
+
+  <h3>Garantia simbólica</h3>
+  <p>Se você aplicar o conteúdo e não enxergar clareza para começar, o risco é praticamente zero comparado ao potencial de retorno.</p>
+
+  <p><strong>Investimento: R$ 19,99</strong></p>
+  `;
+
+  startCountdown();
+}
+
+function goCheckout(){
+  window.location.href = checkoutLink;
+}
+
+/* CONTADOR */
+function startCountdown(){
+  let time = 300;
+  let timerElement = document.getElementById("timer");
+
+  let interval = setInterval(()=>{
+    let minutes = Math.floor(time/60);
+    let seconds = time%60;
+    seconds = seconds < 10 ? "0"+seconds : seconds;
+    timerElement.innerText = minutes+":"+seconds;
+    time--;
+
+    if(time < 0){
+      clearInterval(interval);
+      timerElement.innerText = "00:00";
+    }
+  },1000);
+}
+
+/* POPUP SAÍDA */
+document.addEventListener("mouseout", function(e){
+  if(e.clientY < 0){
+    document.getElementById("exitPopup").style.display="flex";
+  }
+});
+
+function closePopup(){
+  document.getElementById("exitPopup").style.display="none";
+}
+
+</script>
+
+</body>
+</html>
